@@ -1,0 +1,36 @@
+version: "3.1"
+
+services:
+  broker:
+    image: eclipse-mosquitto
+    restart: always
+    ports:
+      - 9001:9001
+      - 1883:1883
+    volumes:
+      - ./mosquitto:/mosquitto/
+  influxdb:
+    image: influxdb:latest
+    ports:
+      - 8086:8086
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=admin
+      - DOCKER_INFLUXDB_INIT_PASSWORD=password
+      - DOCKER_INFLUXDB_INIT_ORG=smoker
+      - DOCKER_INFLUXDB_INIT_BUCKET=smoker
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=04yYk1tqEqGVD8ljVqDuqzegpLGV0kUFryspqO0_liBqDnGeme9IYi_p4ZyW9pFBFCEqstpCtfRXamemt8jlBg==
+    volumes:
+      - influxdb-storage:/var/lib/influxdb
+  telegraf:
+    image: telegraf:latest
+    depends_on:
+      - influxdb
+    ports:
+      - 8125:8125
+      - 8092:8092
+      - 8094:8094
+    volumes:
+      - ./telegraf.conf:/etc/telegraf/telegraf.conf
+volumes:
+  influxdb-storage:
